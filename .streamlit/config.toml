@@ -1,0 +1,9 @@
+[server]
+headless = true
+port = 8501
+
+[server.headless]
+true
+
+[browser]
+gatherUsageStats = false

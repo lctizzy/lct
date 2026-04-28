@@ -1,0 +1,8 @@
+__pycache__/
+downloads/
+frames/
+.git/
+*.pyc
+*.wav
+*.mp4
+*.jpg
