@@ -193,11 +193,16 @@ def transcribe_audio(video_path: str, model_size: str = "small") -> dict:
     """使用 Whisper 本地模型进行语音转录"""
     try:
         import whisper
-        import imageio_ffmpeg
         
-        # 设置 ffmpeg 路径（imageio-ffmpeg 自带）
-        ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
-        os.environ["FFMPEG_BINARY"] = ffmpeg_path
+        # 尝试设置 ffmpeg 路径（多种方式）
+        try:
+            import imageio_ffmpeg
+            ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
+            os.environ["FFMPEG_BINARY"] = ffmpeg_path
+        except ImportError:
+            # imageio-ffmpeg 不可用时，使用系统 ffmpeg
+            # Streamlit Cloud 通过 packages.txt 安装了 ffmpeg
+            pass
         
         model = whisper.load_model(model_size)
         
