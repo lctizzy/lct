@@ -10,6 +10,7 @@ import os
 import re
 import tempfile
 import hashlib
+import time
 from pathlib import Path
 import requests
 import json
@@ -164,13 +165,18 @@ def download_tiktok_video(url_or_id: str, output_dir: str = None) -> dict:
         output_template = os.path.join(output_dir, f"tk_{video_id}.%(ext)s")
         
         ydl_opts = {
-            'format': 'best[ext=mp4]/best',
+            'format': 'best',
             'outtmpl': output_template,
             'noplaylist': True,
             'quiet': False,
             'no_warnings': False,
-            'timeout': 60,
-            'extractor_args': {'tiktok': {'webpage_download': ['1']}},
+            'socket_timeout': 30,
+            'retries': 3,
+            # 添加 User-Agent 模拟浏览器
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Referer': 'https://www.tiktok.com/',
+            },
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -181,7 +187,13 @@ def download_tiktok_video(url_or_id: str, output_dir: str = None) -> dict:
         if files:
             return {"success": True, "path": str(files[0]), "video_id": video_id}
         
-        return {"success": False, "error": "下载完成但未找到文件"}
+        # 尝试查找任何新下载的文件
+        all_files = list(Path(output_dir).glob("*.*"))
+        recent = [f for f in all_files if f.stat().st_mtime > (time.time() - 60)]
+        if recent:
+            return {"success": True, "path": str(recent[0]), "video_id": video_id}
+        
+        return {"success": False, "error": f"下载完成但未找到文件，返回码: {ret}"}
         
     except ImportError:
         return {"success": False, "error": "yt-dlp 未安装，请运行: pip install yt-dlp"}
