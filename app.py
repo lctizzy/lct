@@ -491,6 +491,15 @@ with tab1:
                     video_path = f.name
                 st.success(f"✅ 视频已上传: {uploaded_file.name}")
         
+        if video_path:
+            st.code(f"调试: 文件路径 = {video_path}", language="text")
+            st.code(f"调试: 文件存在 = {os.path.exists(video_path)}", language="text")
+            if not os.path.exists(video_path):
+                # 列出临时目录所有文件
+                import glob
+                tmp_files = glob.glob(os.path.join(output_dir, "*"))
+                st.code(f"临时目录文件: {tmp_files[:10]}", language="text")
+        
         if video_path and os.path.exists(video_path):
             # 步骤1：Whisper 转录
             st.markdown("---")
