@@ -151,31 +151,33 @@ def download_tiktok_video(url_or_id: str, output_dir: str = None) -> dict:
     if not output_dir:
         output_dir = tempfile.gettempdir()
     
-    # 构造完整 URL
-    if video_id.isdigit():
-        full_url = f"https://www.tiktok.com/@user/video/{video_id}"
+    # 直接使用原始 URL（如果是完整 URL）
+    if url_or_id.startswith("http"):
+        full_url = url_or_id
     else:
-        full_url = url_or_id if url_or_id.startswith("http") else f"https://www.tiktok.com/@user/video/{video_id}"
+        # 如果只有视频 ID，构造标准 URL
+        full_url = f"https://www.tiktok.com/@user/video/{video_id}"
     
     try:
         import yt_dlp
         
-        output_template = os.path.join(output_dir, f"tk_{video_id}_%(title)s.%(ext)s")
+        output_template = os.path.join(output_dir, f"tk_{video_id}.%(ext)s")
         
         ydl_opts = {
-            'format': 'bestvideo+bestaudio/best',
+            'format': 'best[ext=mp4]/best',
             'outtmpl': output_template,
             'noplaylist': True,
-            'quiet': True,
-            'no_warnings': True,
-            'timeout': 120,
+            'quiet': False,
+            'no_warnings': False,
+            'timeout': 60,
+            'extractor_args': {'tiktok': {'webpage_download': ['1']}},
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([full_url])
+            ret = ydl.download([full_url])
         
         # 查找下载的文件
-        files = list(Path(output_dir).glob(f"tk_{video_id}_*"))
+        files = list(Path(output_dir).glob(f"tk_{video_id}.*"))
         if files:
             return {"success": True, "path": str(files[0]), "video_id": video_id}
         
