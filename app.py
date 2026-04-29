@@ -203,7 +203,6 @@ def transcribe_audio(video_path: str, model_size: str = "small") -> dict:
         
         result = model.transcribe(
             video_path,
-            language="auto",
             task="transcribe",
             verbose=False,
             ffmpeg_location=ffmpeg_path
